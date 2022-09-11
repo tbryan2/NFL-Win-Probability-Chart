@@ -3,6 +3,7 @@ import pandas as pd
 import nfl_data_py as nfl
 import os
 import urllib.request
+import get_logos
 
 # MPL Dependencies
 from matplotlib import style
@@ -19,42 +20,8 @@ week = input("Enter the week the game was played (format: 01, 05, 12): ")
 away_team = input("Enter the away team (format: NE, KC, GB): ")
 home_team = input("Enter the home team (format: NE, KC, GB): ")
 
-# <!--------------PUT THIS IN A FUNCTION AND IMPORT, SOLVE "no logo_df found" error-------------!>
-
-# Pull the team description
-logos = nfl.import_team_desc()
-
-# Keep only the necessary columns in the logos DataFrame
-logos = logos[['team_abbr', 'team_logo_espn', 'team_color']]
-
-# Initialize an empty list for the logo file paths
-logo_paths = []
-
-# Initialize an empty list for the team abbreviations
-team_abbr = []
-
-# Initialize an empty list for the team colors
-team_color = []
-
-# Create a folder for the image files if it doesn't exist
-if not os.path.exists("logos"):
-    os.makedirs("logos")
-
-# Pull the team logos from the URL and save them in the logos folder, save the file paths to
-for team in range(len(logos)):
-    urllib.request.urlretrieve(
-        logos['team_logo_espn'][team], f"logos/{logos['team_abbr'][team]}.tif")
-    logo_paths.append(f"logos/{logos['team_abbr'][team]}.tif")
-    team_abbr.append(logos['team_abbr'][team])
-    team_color.append(logos['team_color'][team])
-
-
-# Create a dictionary to put logo_paths and team_abbr in
-data = {'team_abbr': team_abbr,
-        'logo_path': logo_paths, 'team_color': team_color}
-
-# Create a DataFrame from the dictionary
-logo_df = pd.DataFrame(data)
+# Use the get logos function
+logo_df = get_logos.get_logos()
 
 # Load the NFL PBP data
 pbp_df = nfl.import_pbp_data([year])
@@ -111,6 +78,8 @@ class HandlerLineImage(HandlerBase):
         self.update_prop(image, orig_handle, legend)
         return [l, image]
 
+# Style the chart
+plt.style.use('fivethirtyeight')
 
 # Define plot size and autolayout
 plt.rcParams["figure.figsize"] = [12, 9]
@@ -141,8 +110,5 @@ plt.legend([away_line, home_line], ["", ""],
 
 # Invert the x-axis so that it ends when there are 0 second remaining
 ax.invert_xaxis()
-
-# Style the chart
-plt.style.use('default')
 
 plt.show()
